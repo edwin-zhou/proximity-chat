@@ -18,17 +18,8 @@ import * as GeoLocation from "expo-location";
 const socket = io("https://proximitychat.glcrx.com");
 
 export default function App() {
-  socket.on("positional message", (message: UserMessage) => {
-    console.log(message);
-  });
-
-  socket.on("locations", (locations: UserInfo[]) => {
-    console.log(locations);
-  });
-
   const [location, setLocation] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState("");
-  const [users, setUsers] = useState<any>([]);
   const [mapRegion, setMapRegion] = useState({
     latitude: 37.78825,
     longitude: -122.4324,
@@ -36,6 +27,15 @@ export default function App() {
     longitudeDelta: 0.000275,
   });
   const [text, setText] = React.useState("");
+  const [users, setUsers] = useState<any>([]);
+
+  socket.on("positional message", (message: UserMessage) => {
+    console.log(message);
+  });
+
+  socket.on("locations", (locations: UserInfo[]) => {
+    setUsers(locations);
+  });
 
   useEffect(() => {
     (async () => {
@@ -124,6 +124,15 @@ export default function App() {
                 }}
               ></Marker>
             )}
+            {users.map((user: UserInfo, index: number) => (
+              <Marker
+                key={index}
+                coordinate={{
+                  latitude: user.location.latitude,
+                  longitude: user.location.longitude,
+                }}
+              ></Marker>
+            ))}
           </MapView>
           <View style={styles.inputContainer}>
             <Text>{errorMsg}</Text>
