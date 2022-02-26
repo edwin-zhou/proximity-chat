@@ -29,7 +29,20 @@ export default function App() {
   const [users, setUsers] = useState<any>([]);
 
   socket.on("positional message", (message: UserMessage) => {
-    console.log(message);
+    let nextUsers = [...users];
+    for (let i = 0; i < nextUsers.length; i++) {
+      if (nextUsers[i].id === message.id) {
+        nextUsers[i].message = message.message;
+      }
+    }
+    setUsers(nextUsers);
+    setTimeout(() => {
+      for (let i = 0; i < nextUsers.length; i++) {
+        if (users[i].id === message.id && users[i].message === message) {
+          nextUsers[i].message = undefined;
+        }
+      }
+    }, 15000);
   });
 
   socket.on("locations", (locations: UserInfo[]) => {
