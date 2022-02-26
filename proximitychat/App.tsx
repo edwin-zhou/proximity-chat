@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import MapView, { Marker } from "react-native-maps";
+import { Location, User, UserInfo, UserMessage } from "./Interfaces";
 import {
   Button,
   StyleSheet,
@@ -11,14 +12,25 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from "react-native";
-import SocketService from "./SocketService";
-import * as Location from "expo-location";
+import io from 'socket.io-client'
+import * as GeoLocation from "expo-location";
+
+const socket = io("https://proximitychat.glcrx.com");
 
 export default function App() {
+
   useEffect(() => {
-    SocketService.receiveLocations();
-    SocketService.receiveMessage();
+    socket.on("positional message", (message: UserMessage) => {
+      console.log(message);
+    });
+
+    socket.on("locations", (locations: UserInfo[]) => {
+      console.log(locations);
+    });
   });
+
+  };
+
 
   const [location, setLocation] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState("");
@@ -35,12 +47,12 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
+      let { status } = await GeoLocation.requestForegroundPermissionsAsync();
       if (status !== "granted") {
         setErrorMsg("Permission to access location was denied");
         return;
       }
-      Location.watchPositionAsync(
+      GeoLocation.watchPositionAsync(
         { accuracy: 6, distanceInterval: 1 },
         (location) => {
           setLocation(location);
@@ -50,10 +62,10 @@ export default function App() {
             latitudeDelta: mapRegion.latitudeDelta,
             longitudeDelta: mapRegion.longitudeDelta,
           });
-          SocketService.sendLocation({
+          socket.emit("location", ({
             latitude: location.coords.latitude,
             longitude: location.coords.longitude
-          });
+          }))
         }
       );
     })();
@@ -61,7 +73,7 @@ export default function App() {
 
   const handleSendMessage = () => {
     if (text.trim().length > 0) {
-      SocketService.sendMessage(text);
+      socket.emit("local message", text);
       setText("");
     }
   };
@@ -142,3 +154,4 @@ export default function App() {
     </KeyboardAvoidingView>
   );
 }
+
