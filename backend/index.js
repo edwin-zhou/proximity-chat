@@ -11,7 +11,7 @@ const getDistanceInDegrees = ({ lat1, lon1 }, { lat2, lon2 }) => {
   return Math.sqrt((lat2 - lat1) ** 2 + (lon2 - lon1) ** 2);
 };
 
-const getDistanceInKmApprox = ({ lat1, lon1 }, { lat2, lon2 }) => {
+const getDistanceInKmApprox = (lat1, lon1, lat2, lon2) => {
   return getDistanceInDegrees({ lat1, lon1 }, { lat2, lon2 }) * 111;
 };
 
@@ -33,9 +33,18 @@ io.on("connection", (socket) => {
 
   socket.on("positional message", async (msg) => {
     const allSockets = await io.fetchSockets();
-    const receivers = allSockets.filter(
-      (s) => getDistanceInKmApprox(socket.data, s.data) < 1
-    );
+    const receivers = allSockets
+      .filter((s) => {
+        const d = getDistanceInKmApprox(
+          socket.data.latitude,
+          socket.data.longitude,
+          s.data.latitude,
+          s.data.longitude
+        );
+        console.log(d);
+        return d < 10;
+      })
+      .map((s) => s.id);
     if (receivers.length > 0) {
       io.to(receivers).emit("positional message", msg);
       console.log(

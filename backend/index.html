@@ -61,6 +61,7 @@
       <input id="input" autocomplete="off" />
       <button>Send</button>
       <button id="positional-send-button">Send (positional)</button>
+      <button id="send-position">Send position</button>
     </form>
     <script src="/socket.io/socket.io.js"></script>
 
@@ -71,6 +72,7 @@
       const form = document.getElementById("form");
       const input = document.getElementById("input");
       const positionalSendButton = document.getElementById("positional-send-button");
+      const positionSendButton = document.getElementById("send-position");
 
       form.addEventListener("submit", function (e) {
         e.preventDefault();
@@ -86,6 +88,24 @@
           socket.emit("positional message", input.value);
           input.value = "";
         }
+      });
+
+      positionSendButton.addEventListener("click", function (e) {
+        e.preventDefault();
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            console.log(position);
+            socket.emit("position", position.coords.latitude, position.coords.longitude);
+          },
+          (error) => {
+            console.error(error);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: Infinity,
+            maximumAge: 0,
+          }
+        );
       });
 
       socket.on("chat message", function (msg) {
