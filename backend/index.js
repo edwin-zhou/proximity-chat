@@ -12,7 +12,7 @@ const getDistanceInDegrees = (lat1, lon1, lat2, lon2) => {
 };
 
 const getDistanceInKmApprox = (lat1, lon1, lat2, lon2) => {
-  return getDistanceInDegrees(lat1, lon1, lat2, lon2) * 111;
+  return getDistanceInDegrees(lat1, lon1, lat2, lon2) * 111e3;
 };
 
 io.on("connection", (socket) => {
@@ -42,7 +42,7 @@ io.on("connection", (socket) => {
           s.data.longitude
         );
         console.log(d);
-        return d < 10;
+        return d < 1000;
       })
       .map((s) => s.id);
     if (receivers.length > 0) {
@@ -78,7 +78,7 @@ io.on("connection", (socket) => {
         s.data.latitude,
         s.data.longitude
       );
-      return d < 10 && s.id !== socket.id;
+      return d < 1000 && s.id !== socket.id;
     });
     if (nearbyUsers.length > 0) {
       io.to(socket.id).emit(
