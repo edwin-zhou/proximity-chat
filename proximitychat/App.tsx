@@ -12,23 +12,19 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from "react-native";
-import io from 'socket.io-client'
+import io from "socket.io-client";
 import * as GeoLocation from "expo-location";
 
 const socket = io("https://proximitychat.glcrx.com");
 
 export default function App() {
-
-  useEffect(() => {
-    socket.on("positional message", (message: UserMessage) => {
-      console.log(message);
-    });
-
-    socket.on("locations", (locations: UserInfo[]) => {
-      console.log(locations);
-    });
+  socket.on("positional message", (message: UserMessage) => {
+    console.log(message);
   });
 
+  socket.on("locations", (locations: UserInfo[]) => {
+    console.log(locations);
+  });
 
   const [location, setLocation] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState("");
@@ -58,10 +54,10 @@ export default function App() {
             latitudeDelta: mapRegion.latitudeDelta,
             longitudeDelta: mapRegion.longitudeDelta,
           });
-          socket.emit("location", ({
+          socket.emit("location", {
             latitude: location.coords.latitude,
-            longitude: location.coords.longitude
-          }))
+            longitude: location.coords.longitude,
+          });
         }
       );
     })();
@@ -158,4 +154,3 @@ export default function App() {
     </KeyboardAvoidingView>
   );
 }
-
