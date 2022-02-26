@@ -1,11 +1,17 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
 import MapView from 'react-native-maps';
-import { StyleSheet, Text, View, TextInput, Button } from "react-native";
-import { io } from "socket.io-client";
+import { StyleSheet, Text, View, TextInput} from "react-native";
+import SocketService from './SocketService';
+import {Divider, Appbar, Button} from 'react-native-paper'
 
 export default function App() {
+  useEffect(() => {
+    SocketService.onReceiveLocation()
+    SocketService.onReceiveMessage()
+  })
+
   const [mapRegion, setmapRegion] = useState({
     latitude: 37.78825,
     longitude: -122.4324,
@@ -14,42 +20,49 @@ export default function App() {
   });
 
   const [text, onChangeText] = React.useState("");
-  const socket = io("https://proximitychat.glcrx.com");
-  function onSend() {
-    if (text) {
-      socket.emit("chat message", text);
-    }
-  }
+
 
   const styles = StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: "#fff",
-      alignItems: "center",
-      justifyContent: "center",
+      alignItems: "stretch",
+      justifyContent: "space-evenly",
     },
   });
 
+  function handleSendMessage() {
+    SocketService.onSend(text)
+  }
+
   return (
-    <View style={styles.container}>
+    <View style={{height: "100%"}}>
       <MapView
         region={mapRegion}
-        style={{ alignSelf: 'stretch', height: '100%' }}>
+        style={{height: "92%"}}>
       </MapView>
-      <Text>Open up App.tsx to start working on your app!</Text>
+      {/* <Divider></Divider> */}
 
-      <TextInput
-        value={text}
-        onChangeText={onChangeText}
-        placeholder="Send a message"
-      />
+      <View style={{alignItems: "center"}}>
+        <TextInput
+          value={text}
+          placeholder="Send a message"
+          onChangeText={onChangeText}
+        />
 
-      <Button
-        title="Send"
-        onPress={onSend}
-        disabled={text.trim().length === 0}
-      />
-      
+        <Button 
+          icon="send"
+          disabled={text.trim().length === 0}
+          onPress={handleSendMessage} 
+          >
+
+        </Button>
+      </View>
+
+
+
+
+
       <StatusBar style="auto" />
     </View>
   );
