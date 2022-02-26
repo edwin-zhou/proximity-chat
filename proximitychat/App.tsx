@@ -1,10 +1,10 @@
-import React, { useEffect } from "react";
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
 import MapView from "react-native-maps";
 import {
   Button,
   StyleSheet,
   View,
+  Text,
   TextInput,
   Platform,
   KeyboardAvoidingView,
@@ -12,6 +12,7 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import SocketService from "./SocketService";
+import * as Location from "expo-location";
 
 export default function App() {
   useEffect(() => {
@@ -19,14 +20,51 @@ export default function App() {
     SocketService.onReceiveMessage();
   });
 
-  const [mapRegion, setmapRegion] = useState({
+  const [location, setLocation] = useState<any>(null);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const [mapRegion, setMapRegion] = useState({
     latitude: 37.78825,
     longitude: -122.4324,
-    latitudeDelta: 0.0922,
-    longitudeDelta: 0.0421,
+    latitudeDelta: 0.00605,
+    longitudeDelta: 0.000275,
   });
 
   const [text, setText] = React.useState("");
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        setErrorMsg("Permission to access location was denied");
+        return;
+      }
+      Location.watchPositionAsync(
+        { accuracy: 6, distanceInterval: 1 },
+        (location) => {
+          console.log("location updated");
+          setLocation(location);
+          setMapRegion({
+            latitude: Number(location.coords.latitude),
+            longitude: Number(location.coords.longitude),
+            latitudeDelta: mapRegion.latitudeDelta,
+            longitudeDelta: mapRegion.longitudeDelta,
+          });
+          SocketService.sendPosition(
+            location.coords.latitude,
+            location.coords.longitude
+          );
+        }
+      );
+    })();
+  }, []);
+
+  const handleSendMessage = () => {
+    if (text.trim().length > 0) {
+      SocketService.sendMessage(text);
+      setText("");
+    }
+  };
 
   const styles = StyleSheet.create({
     container: {
@@ -59,13 +97,6 @@ export default function App() {
     sendButton: {},
   });
 
-  function handleSendMessage() {
-    if (text.trim().length > 0) {
-      SocketService.send(text);
-      setText("");
-    }
-  }
-
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -73,8 +104,23 @@ export default function App() {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.inner}>
-          <MapView region={mapRegion} style={styles.map}></MapView>
+          <MapView
+            zoomEnabled={false}
+            pitchEnabled={false}
+            scrollEnabled={false}
+            region={mapRegion}
+            style={styles.map}
+          ></MapView>
           <View style={styles.inputContainer}>
+            <Text>{errorMsg}</Text>
+            {!errorMsg && location && (
+              <Text>
+                {location["coords"]["latitude"] +
+                  ", " +
+                  location["coords"]["longitude"]}
+              </Text>
+            )}
+            {!errorMsg && !location && <Text>waiting...</Text>}
             <TextInput
               value={text}
               placeholder="Send a message"

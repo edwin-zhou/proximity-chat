@@ -61,16 +61,18 @@
       <input id="input" autocomplete="off" />
       <button>Send</button>
       <button id="positional-send-button">Send (positional)</button>
+      <button id="send-position">Send position</button>
     </form>
     <script src="/socket.io/socket.io.js"></script>
 
     <script>
-      var socket = io();
+      const socket = io();
 
-      var messages = document.getElementById("messages");
-      var form = document.getElementById("form");
-      var input = document.getElementById("input");
+      const messages = document.getElementById("messages");
+      const form = document.getElementById("form");
+      const input = document.getElementById("input");
       const positionalSendButton = document.getElementById("positional-send-button");
+      const positionSendButton = document.getElementById("send-position");
 
       form.addEventListener("submit", function (e) {
         e.preventDefault();
@@ -88,18 +90,40 @@
         }
       });
 
+      positionSendButton.addEventListener("click", function (e) {
+        e.preventDefault();
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            console.log(position);
+            socket.emit("position", position.coords.latitude, position.coords.longitude);
+          },
+          (error) => {
+            console.error(error);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: Infinity,
+            maximumAge: 0,
+          }
+        );
+      });
+
       socket.on("chat message", function (msg) {
-        var item = document.createElement("li");
+        const item = document.createElement("li");
         item.textContent = msg;
         messages.appendChild(item);
         window.scrollTo(0, document.body.scrollHeight);
       });
 
       socket.on("positional message", function (msg) {
-        var item = document.createElement("li");
+        const item = document.createElement("li");
         item.textContent = msg;
         messages.appendChild(item);
         window.scrollTo(0, document.body.scrollHeight);
+      });
+
+      socket.on("positions", function (positions) {
+        console.log(positions);
       });
     </script>
   </body>
