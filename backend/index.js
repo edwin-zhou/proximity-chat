@@ -7,12 +7,12 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
-const getDistanceInDegrees = ({ lat1, lon1 }, { lat2, lon2 }) => {
+const getDistanceInDegrees = (lat1, lon1, lat2, lon2) => {
   return Math.sqrt((lat2 - lat1) ** 2 + (lon2 - lon1) ** 2);
 };
 
 const getDistanceInKmApprox = (lat1, lon1, lat2, lon2) => {
-  return getDistanceInDegrees({ lat1, lon1 }, { lat2, lon2 }) * 111;
+  return getDistanceInDegrees(lat1, lon1, lat2, lon2) * 111;
 };
 
 io.on("connection", (socket) => {
@@ -68,6 +68,31 @@ io.on("connection", (socket) => {
       `User with id ${socket.id} reported position: ${latitude}, ${longitude}`
     );
   });
+
+  const positionReportInterval = setInterval(async () => {
+    const allSockets = await io.fetchSockets();
+    const nearbyUsers = allSockets.filter((s) => {
+      const d = getDistanceInKmApprox(
+        socket.data.latitude,
+        socket.data.longitude,
+        s.data.latitude,
+        s.data.longitude
+      );
+      return d < 10 && s.id !== socket.id;
+    });
+    if (nearbyUsers.length > 0) {
+      io.to(socket.id).emit(
+        "positions",
+        nearbyUsers.map((s) => {
+          return {
+            id: s.id,
+            latitude: s.data.latitude,
+            longitude: s.data.longitude,
+          };
+        })
+      );
+    }
+  }, 10000);
 });
 
 http.listen(port, () => {

@@ -121,6 +121,10 @@
         messages.appendChild(item);
         window.scrollTo(0, document.body.scrollHeight);
       });
+
+      socket.on("positions", function (positions) {
+        console.log(positions);
+      });
     </script>
   </body>
 </html>
