@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import MapView from "react-native-maps";
+import MapView, { Marker } from "react-native-maps";
 import {
   Button,
   StyleSheet,
@@ -16,11 +16,13 @@ import * as Location from "expo-location";
 
 export default function App() {
   useEffect(() => {
-    SocketService.onReceiveLocation();
+    SocketService.receiveLocations();
+    SocketService.receiveMessage();
   });
 
   const [location, setLocation] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState("");
+  const [users, setUsers] = useState<any>([]);
 
   const [mapRegion, setMapRegion] = useState({
     latitude: 37.78825,
@@ -41,7 +43,6 @@ export default function App() {
       Location.watchPositionAsync(
         { accuracy: 6, distanceInterval: 1 },
         (location) => {
-          console.log("location updated");
           setLocation(location);
           setMapRegion({
             latitude: Number(location.coords.latitude),
@@ -49,10 +50,10 @@ export default function App() {
             latitudeDelta: mapRegion.latitudeDelta,
             longitudeDelta: mapRegion.longitudeDelta,
           });
-          SocketService.sendPosition(
-            location.coords.latitude,
-            location.coords.longitude
-          );
+          SocketService.sendLocation({
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude
+          });
         }
       );
     })();
@@ -110,7 +111,7 @@ export default function App() {
             region={mapRegion}
             style={styles.map}
           >
-            
+            {/* {location ? <Marker key={0} coordinate={{ latitude: location.coords.latitude, longitude: location.coords.longitude }}> </Marker> : null} */}
           </MapView>
           <View style={styles.inputContainer}>
             <Text>{errorMsg}</Text>

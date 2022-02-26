@@ -1,12 +1,13 @@
 import {Marker} from 'react-native-maps'
+import { UserInfo} from './Interfaces'
 
 const avatar = 1
 
 const MapService = {
 
-    showMarker(location: {longitude: number, latitude: number}) {
+    showMarker(userInfo: UserInfo) {
         return <Marker
-                coordinate={location}
+                coordinate={userInfo.location}
                 icon={avatar}
             >
 
