@@ -1,14 +1,28 @@
-import React from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { useState, useEffect } from 'react';
-import MapView from 'react-native-maps';
-import { StyleSheet, Text, View, TextInput, Button} from "react-native";
-import { io } from "socket.io-client";
-import * as Location from 'expo-location';
+import React, { useEffect, useState } from "react";
+import MapView from "react-native-maps";
+import {
+  Button,
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  Platform,
+  KeyboardAvoidingView,
+  Keyboard,
+  TouchableWithoutFeedback,
+} from "react-native";
+import SocketService from "./SocketService";
+import * as Location from "expo-location";
 
-export default function App() { 
-  const [location, setLocation] = useState(null);
-  const [errorMsg, setErrorMsg] = useState(null);
+export default function App() {
+  useEffect(() => {
+    SocketService.onReceiveLocation();
+    SocketService.onReceiveMessage();
+  });
+
+  const [location, setLocation] = useState<any>(null);
+  const [errorMsg, setErrorMsg] = useState("");
+
   const [mapRegion, setMapRegion] = useState({
     latitude: 37.78825,
     longitude: -122.4324,
@@ -16,75 +30,113 @@ export default function App() {
     longitudeDelta: 0.000275,
   });
 
-  const [text, onChangeText] = React.useState("");
-  const socket = io("https://proximitychat.glcrx.com");
-  function onSend() {
-    if (text) {
-      socket.emit("chat message", text);
-    }
-  }
+  const [text, setText] = React.useState("");
 
   useEffect(() => {
     (async () => {
       let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setErrorMsg('Permission to access location was denied');
+      if (status !== "granted") {
+        setErrorMsg("Permission to access location was denied");
         return;
       }
-      Location.watchPositionAsync({accuracy:6, distance: 1}, location => {
-        console.log("location updated")
-        setLocation(location);
-        setMapRegion({
-          latitude: Number(location.coords.latitude),
-          longitude : Number(location.coords.longitude),
-          latitudeDelta : mapRegion.latitudeDelta,
-          longitudeDelta : mapRegion.longitudeDelta
-        })
-        socket.emit("position", location.coords.latitude, location.coords.longitude);
-      });
+      Location.watchPositionAsync(
+        { accuracy: 6, distanceInterval: 1 },
+        (location) => {
+          console.log("location updated");
+          setLocation(location);
+          setMapRegion({
+            latitude: Number(location.coords.latitude),
+            longitude: Number(location.coords.longitude),
+            latitudeDelta: mapRegion.latitudeDelta,
+            longitudeDelta: mapRegion.longitudeDelta,
+          });
+          SocketService.sendPosition(
+            location.coords.latitude,
+            location.coords.longitude
+          );
+        }
+      );
     })();
   }, []);
+
+  const handleSendMessage = () => {
+    if (text.trim().length > 0) {
+      SocketService.sendMessage(text);
+      setText("");
+    }
+  };
 
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: "#fff",
-      alignItems: "center",
-      justifyContent: "center",
     },
+    inner: {
+      flex: 1,
+      alignItems: "stretch",
+      justifyContent: "flex-start",
+    },
+    map: {
+      flexGrow: 1,
+      flexShrink: 1,
+      flexBasis: "auto",
+    },
+    inputContainer: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+      alignItems: "center",
+    },
+    input: {
+      flex: 1,
+      height: 40,
+      paddingHorizontal: 12,
+      margin: 10,
+      borderColor: "#777777",
+      borderWidth: 1,
+      borderRadius: 20,
+    },
+    sendButton: {},
   });
 
-
-
   return (
-    <View style={styles.container}>
-      <MapView
-        zoomEnabled={false}
-        pitchEnabled={false}
-        scrollEnabled={false}
-
-        region={mapRegion}
-        style={{ alignSelf: 'stretch', height: '100%' }}>
-      </MapView>
-
-      <Text>{ errorMsg }</Text>
-      { !errorMsg && location && <Text>{location["coords"]["latitude"] + ", " +  location["coords"]["longitude"]}</Text>}
-      { !errorMsg && !location && <Text>waiting...</Text>}
-      <TextInput
-        value={text}
-        onChangeText={onChangeText}
-        placeholder="Send a message"
-      />
-
-      <Button
-        title="Send"
-        onPress={onSend}
-        disabled={text.trim().length === 0}
-      />
-      
-      <StatusBar style="auto" />
-    </View>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.inner}>
+          <MapView
+            zoomEnabled={false}
+            pitchEnabled={false}
+            scrollEnabled={false}
+            region={mapRegion}
+            style={styles.map}
+          ></MapView>
+          <View style={styles.inputContainer}>
+            <Text>{errorMsg}</Text>
+            {!errorMsg && location && (
+              <Text>
+                {location["coords"]["latitude"] +
+                  ", " +
+                  location["coords"]["longitude"]}
+              </Text>
+            )}
+            {!errorMsg && !location && <Text>waiting...</Text>}
+            <TextInput
+              value={text}
+              placeholder="Send a message"
+              onChangeText={setText}
+              style={styles.input}
+            />
+            <Button
+              title="Send"
+              disabled={text.trim().length === 0}
+              onPress={handleSendMessage}
+            ></Button>
+            <View style={{ width: 10 }}></View>
+          </View>
+          <View style={{ height: Platform.OS === "ios" ? 10 : 0 }}></View>
+        </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
-
-
