@@ -1,6 +1,11 @@
 import React, { useEffect } from "react";
 import { io } from "socket.io-client";
-import { Location as Location, User, UserInfo, UserMessage } from "./Interfaces";
+import {
+  Location as Location,
+  User,
+  UserInfo,
+  UserMessage,
+} from "./Interfaces";
 
 const socket = io("https://proximitychat.glcrx.com");
 
@@ -10,7 +15,7 @@ const SocketService = {
   },
 
   sendLocation(location: Location) {
-    socket.emit("location", location);
+    socket.emit("location", location.latitude, location.longitude);
   },
 
   receiveMessage(): void {
@@ -21,7 +26,7 @@ const SocketService = {
 
   receiveLocations(): void {
     socket.on("locations", (locations: UserInfo[]) => {
-      console.log(locations)
+      console.log(locations);
     });
   },
 };
