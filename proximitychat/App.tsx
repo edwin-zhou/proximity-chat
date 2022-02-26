@@ -19,21 +19,7 @@ import * as GeoLocation from "expo-location";
 const socket = io("https://proximitychat.glcrx.com");
 
 export default function App() {
-
-  useEffect(() => {
-    socket.on("positional message", (message: UserMessage) => {
-      console.log(message);
-    });
-
-    socket.on("locations", (locations: UserInfo[]) => {
-      console.log(locations);
-    });
-  });
-
-
   const [location, setLocation] = useState<any>(null);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [users, setUsers] = useState<any>([]);
   const [mapRegion, setMapRegion] = useState({
     latitude: 37.78825,
     longitude: -122.4324,
@@ -41,12 +27,34 @@ export default function App() {
     longitudeDelta: 0.000275,
   });
   const [text, setText] = React.useState("");
+  const [users, setUsers] = useState<any>([]);
+
+  socket.on("positional message", (message: UserMessage) => {
+    let nextUsers = [...users];
+    for (let i = 0; i < nextUsers.length; i++) {
+      if (nextUsers[i].id === message.id) {
+        nextUsers[i].message = message.message;
+      }
+    }
+    setUsers(nextUsers);
+    setTimeout(() => {
+      for (let i = 0; i < nextUsers.length; i++) {
+        if (users[i].id === message.id && users[i].message === message) {
+          nextUsers[i].message = undefined;
+        }
+      }
+    }, 15000);
+  });
+
+  socket.on("locations", (locations: UserInfo[]) => {
+    setUsers(locations);
+  });
 
   useEffect(() => {
     (async () => {
       let { status } = await GeoLocation.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        setErrorMsg("Permission to access location was denied");
+        console.warn("Permission to access location was denied");
         return;
       }
       GeoLocation.watchPositionAsync(
@@ -59,10 +67,10 @@ export default function App() {
             latitudeDelta: mapRegion.latitudeDelta,
             longitudeDelta: mapRegion.longitudeDelta,
           });
-          socket.emit("location", ({
+          socket.emit("location", {
             latitude: location.coords.latitude,
-            longitude: location.coords.longitude
-          }))
+            longitude: location.coords.longitude,
+          });
         }
       );
     })();
@@ -135,30 +143,31 @@ export default function App() {
                 </Marker>
               </View>
             )}
+            {users.map((user: UserInfo, index: number) => (
+              <Marker
+                key={index}
+                coordinate={{
+                  latitude: user.location.latitude,
+                  longitude: user.location.longitude,
+                }}
+              ></Marker>
+            ))}
           </MapView>
-
-          <View style={styles.inputContainer}>
-            <Text>{errorMsg}</Text>
-            {/* {!errorMsg && location && (
-              <Text>
-                {location["coords"]["latitude"] +
-                  ", " +
-                  location["coords"]["longitude"]}
-              </Text>
-            )} */}
-            {!errorMsg && !location && <Text>waiting...</Text>}
-            <TextInput
-              value={text}
-              placeholder="Send a message"
-              onChangeText={setText}
-              style={styles.input}
-            />
-            <Button
-              title="Send"
-              disabled={text.trim().length === 0}
-              onPress={handleSendMessage}
-            ></Button>
-            <View style={{ width: 10 }}></View>
+          <View>
+            <View style={styles.inputContainer}>
+              <TextInput
+                value={text}
+                placeholder="Send a message"
+                onChangeText={setText}
+                style={styles.input}
+              />
+              <Button
+                title="Send"
+                disabled={text.trim().length === 0}
+                onPress={handleSendMessage}
+              ></Button>
+              <View style={{ width: 10 }}></View>
+            </View>
           </View>
           <View style={{ height: Platform.OS === "ios" ? 10 : 0 }}></View>
         </View>
@@ -166,4 +175,3 @@ export default function App() {
     </KeyboardAvoidingView>
   );
 }
-

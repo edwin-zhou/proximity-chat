@@ -61,7 +61,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("location", (latitude, longitude) => {
+  socket.on("location", ({ latitude, longitude }) => {
     socket.data.latitude = latitude;
     socket.data.longitude = longitude;
     console.log(
