@@ -12,6 +12,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from "react-native";
+import {Chip} from 'react-native-paper'
 import io from 'socket.io-client'
 import * as GeoLocation from "expo-location";
 
@@ -119,25 +120,32 @@ export default function App() {
             region={mapRegion}
             style={styles.map}
           >
+            
             {location && (
-              <Marker
-                key={0}
-                coordinate={{
-                  latitude: location.coords.latitude,
-                  longitude: location.coords.longitude,
-                }}
-              ></Marker>
+              <View>
+                <Marker
+                  key={0}
+                  coordinate={{
+                    latitude: location.coords.latitude,
+                    longitude: location.coords.longitude,
+                  }}
+                >
+                  <Chip style={{"maxHeight":"50", "maxWidth":"50"}}>bitch</Chip>
+                  <Text>skdfbsjdbfs</Text>
+                </Marker>
+              </View>
             )}
           </MapView>
+
           <View style={styles.inputContainer}>
             <Text>{errorMsg}</Text>
-            {!errorMsg && location && (
+            {/* {!errorMsg && location && (
               <Text>
                 {location["coords"]["latitude"] +
                   ", " +
                   location["coords"]["longitude"]}
               </Text>
-            )}
+            )} */}
             {!errorMsg && !location && <Text>waiting...</Text>}
             <TextInput
               value={text}
