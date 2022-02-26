@@ -6,7 +6,7 @@ const socket = io("https://proximitychat.glcrx.com");
 const SocketService = {
   sendMessage(text: string): void {
     if (text) {
-      socket.emit("chat message", text);
+      socket.emit("positional message", text);
     }
   },
 
