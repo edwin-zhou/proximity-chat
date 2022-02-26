@@ -23,8 +23,8 @@ export default function App() {
   const [mapRegion, setMapRegion] = useState({
     latitude: 37.78825,
     longitude: -122.4324,
-    latitudeDelta: 0.00605,
-    longitudeDelta: 0.000275,
+    latitudeDelta: 0.00240,
+    longitudeDelta: 0.000110,
   });
   const [text, setText] = React.useState("");
   const [users, setUsers] = useState<any>([]);
@@ -132,19 +132,19 @@ export default function App() {
             {location && (
               <View>
                 <Marker
+                  pinColor={'blue'}
                   key={0}
                   coordinate={{
                     latitude: location.coords.latitude,
                     longitude: location.coords.longitude,
                   }}
                 >
-                  <Chip style={{"maxHeight":"50", "maxWidth":"50"}}>bitch</Chip>
-                  <Text>skdfbsjdbfs</Text>
                 </Marker>
               </View>
             )}
             {users.map((user: UserInfo, index: number) => (
               <Marker
+                pinColor={'red'}
                 key={index}
                 coordinate={{
                   latitude: user.location.latitude,
