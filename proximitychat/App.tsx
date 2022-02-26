@@ -19,7 +19,6 @@ const socket = io("https://proximitychat.glcrx.com");
 
 export default function App() {
   const [location, setLocation] = useState<any>(null);
-  const [errorMsg, setErrorMsg] = useState("");
   const [mapRegion, setMapRegion] = useState({
     latitude: 37.78825,
     longitude: -122.4324,
@@ -41,7 +40,7 @@ export default function App() {
     (async () => {
       let { status } = await GeoLocation.requestForegroundPermissionsAsync();
       if (status !== "granted") {
-        setErrorMsg("Permission to access location was denied");
+        console.warn("Permission to access location was denied");
         return;
       }
       GeoLocation.watchPositionAsync(
@@ -134,28 +133,21 @@ export default function App() {
               ></Marker>
             ))}
           </MapView>
-          <View style={styles.inputContainer}>
-            <Text>{errorMsg}</Text>
-            {!errorMsg && location && (
-              <Text>
-                {location["coords"]["latitude"] +
-                  ", " +
-                  location["coords"]["longitude"]}
-              </Text>
-            )}
-            {!errorMsg && !location && <Text>waiting...</Text>}
-            <TextInput
-              value={text}
-              placeholder="Send a message"
-              onChangeText={setText}
-              style={styles.input}
-            />
-            <Button
-              title="Send"
-              disabled={text.trim().length === 0}
-              onPress={handleSendMessage}
-            ></Button>
-            <View style={{ width: 10 }}></View>
+          <View>
+            <View style={styles.inputContainer}>
+              <TextInput
+                value={text}
+                placeholder="Send a message"
+                onChangeText={setText}
+                style={styles.input}
+              />
+              <Button
+                title="Send"
+                disabled={text.trim().length === 0}
+                onPress={handleSendMessage}
+              ></Button>
+              <View style={{ width: 10 }}></View>
+            </View>
           </View>
           <View style={{ height: Platform.OS === "ios" ? 10 : 0 }}></View>
         </View>
