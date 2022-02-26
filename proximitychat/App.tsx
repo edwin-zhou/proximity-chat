@@ -12,8 +12,8 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from "react-native";
-import {Chip} from 'react-native-paper'
-import io from 'socket.io-client'
+import { Chip } from "react-native-paper";
+import io from "socket.io-client";
 import * as GeoLocation from "expo-location";
 
 const socket = io("https://proximitychat.glcrx.com");
@@ -23,25 +23,22 @@ export default function App() {
   const [mapRegion, setMapRegion] = useState({
     latitude: 37.78825,
     longitude: -122.4324,
-    latitudeDelta: 0.00240,
-    longitudeDelta: 0.000110,
+    latitudeDelta: 0.0024,
+    longitudeDelta: 0.00011,
   });
   const [text, setText] = React.useState("");
-  const [users, setUsers] = useState<any>([]);
+  const [users, setUsers] = useState<UserInfo[]>([]);
+  const [messages, setMessages] = useState<Map<string, string>>(new Map());
 
-  socket.on("positional message", (message: UserMessage) => {
-    let nextUsers = [...users];
-    for (let i = 0; i < nextUsers.length; i++) {
-      if (nextUsers[i].id === message.id) {
-        nextUsers[i].message = message.message;
-      }
-    }
-    setUsers(nextUsers);
+  socket.on("local message", (message: UserMessage) => {
+    let nextMessages = messages;
+    nextMessages.set(message.id, message.message);
+    setMessages(nextMessages);
     setTimeout(() => {
-      for (let i = 0; i < nextUsers.length; i++) {
-        if (users[i].id === message.id && users[i].message === message) {
-          nextUsers[i].message = undefined;
-        }
+      let nextMessages = messages;
+      if (nextMessages.get(message.id) === message.message) {
+        nextMessages.delete(message.id);
+        setMessages(nextMessages);
       }
     }, 15000);
   });
@@ -128,23 +125,21 @@ export default function App() {
             region={mapRegion}
             style={styles.map}
           >
-            
             {location && (
               <View>
                 <Marker
-                  pinColor={'blue'}
+                  pinColor={"blue"}
                   key={0}
                   coordinate={{
                     latitude: location.coords.latitude,
                     longitude: location.coords.longitude,
                   }}
-                >
-                </Marker>
+                ></Marker>
               </View>
             )}
             {users.map((user: UserInfo, index: number) => (
               <Marker
-                pinColor={'red'}
+                pinColor={"red"}
                 key={index}
                 coordinate={{
                   latitude: user.location.latitude,
