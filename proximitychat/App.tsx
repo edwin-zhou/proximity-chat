@@ -1,16 +1,19 @@
 import React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MapView from 'react-native-maps';
-import { StyleSheet, Text, View, TextInput, Button } from "react-native";
+import { StyleSheet, Text, View, TextInput, Button} from "react-native";
 import { io } from "socket.io-client";
+import * as Location from 'expo-location';
 
-export default function App() {
-  const [mapRegion, setmapRegion] = useState({
+export default function App() { 
+  const [location, setLocation] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
+  const [mapRegion, setMapRegion] = useState({
     latitude: 37.78825,
     longitude: -122.4324,
-    latitudeDelta: 0.0922,
-    longitudeDelta: 0.0421,
+    latitudeDelta: 0.00605,
+    longitudeDelta: 0.000275,
   });
 
   const [text, onChangeText] = React.useState("");
@@ -21,6 +24,27 @@ export default function App() {
     }
   }
 
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setErrorMsg('Permission to access location was denied');
+        return;
+      }
+      Location.watchPositionAsync({accuracy:6, distance: 1}, location => {
+        console.log("location updated")
+        setLocation(location);
+        setMapRegion({
+          latitude: Number(location.coords.latitude),
+          longitude : Number(location.coords.longitude),
+          latitudeDelta : mapRegion.latitudeDelta,
+          longitudeDelta : mapRegion.longitudeDelta
+        })
+        socket.emit("position", location.coords.latitude, location.coords.longitude);
+      });
+    })();
+  }, []);
+
   const styles = StyleSheet.create({
     container: {
       flex: 1,
@@ -30,14 +54,22 @@ export default function App() {
     },
   });
 
+
+
   return (
     <View style={styles.container}>
       <MapView
+        zoomEnabled={false}
+        pitchEnabled={false}
+        scrollEnabled={false}
+
         region={mapRegion}
         style={{ alignSelf: 'stretch', height: '100%' }}>
       </MapView>
-      <Text>Open up App.tsx to start working on your app!</Text>
 
+      <Text>{ errorMsg }</Text>
+      { !errorMsg && location && <Text>{location["coords"]["latitude"] + ", " +  location["coords"]["longitude"]}</Text>}
+      { !errorMsg && !location && <Text>waiting...</Text>}
       <TextInput
         value={text}
         onChangeText={onChangeText}
