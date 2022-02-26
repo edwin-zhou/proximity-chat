@@ -29,20 +29,16 @@ export default function App() {
     });
   });
 
-  };
-
 
   const [location, setLocation] = useState<any>(null);
   const [errorMsg, setErrorMsg] = useState("");
   const [users, setUsers] = useState<any>([]);
-
   const [mapRegion, setMapRegion] = useState({
     latitude: 37.78825,
     longitude: -122.4324,
     latitudeDelta: 0.00605,
     longitudeDelta: 0.000275,
   });
-
   const [text, setText] = React.useState("");
 
   useEffect(() => {
