@@ -31,7 +31,7 @@ io.on("connection", (socket) => {
     io.emit("chat message", msg);
   });
 
-  socket.on("positional message", async (msg) => {
+  socket.on("local message", async (msg) => {
     const allSockets = await io.fetchSockets();
     const receivers = allSockets
       .filter((s) => {
@@ -46,7 +46,7 @@ io.on("connection", (socket) => {
       })
       .map((s) => s.id);
     if (receivers.length > 0) {
-      io.to(receivers).emit("positional message", msg);
+      io.to(receivers).emit("local message", msg);
       console.log(
         `${new Date().toLocaleString()}: ${
           socket.id
@@ -61,7 +61,7 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("position", (latitude, longitude) => {
+  socket.on("location", (latitude, longitude) => {
     socket.data.latitude = latitude;
     socket.data.longitude = longitude;
     console.log(
@@ -82,12 +82,14 @@ io.on("connection", (socket) => {
     });
     if (nearbyUsers.length > 0) {
       io.to(socket.id).emit(
-        "positions",
+        "locations",
         nearbyUsers.map((s) => {
           return {
             id: s.id,
-            latitude: s.data.latitude,
-            longitude: s.data.longitude,
+            location: {
+              latitude: s.data.latitude,
+              longitude: s.data.longitude,
+            },
           };
         })
       );
