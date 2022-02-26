@@ -8,14 +8,26 @@ app.get("/", (req, res) => {
 });
 
 io.on("connection", (socket) => {
-  socket.on("connect", () => {
-    console.log(`User #${user_id} connected at ${Date.now()}`);
-  });
+  console.log(`User with id ${socket.id} connected at ${new Date()}`);
+
   socket.on("disconnect", () => {
-    console.log(`A user just disconnected at ${Date.now()}`);")
+    console.log(`User with id ${socket.id} disconnected at ${new Date()}`);
+  });
+
   socket.on("chat message", (msg) => {
     console.log(`message: ${msg}`);
     io.emit("chat message", msg);
+  });
+
+  socket.on("positional message", async (msg) => {
+    const allSockets = await io.fetchSockets();
+    const receivers = allSockets
+      .filter((s) => s.id < socket.id);
+    console.log()
+    const receiversReduced
+      .reduce((acc, s) => acc.to(`socket#${s.id}`), io);
+    receivers.emit("positional message", msg);
+    console.log
   });
 });
 
