@@ -7,14 +7,22 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
+const getDistanceInDegrees = ({ lat1, lon1 }, { lat2, lon2 }) => {
+  return Math.sqrt((lat2 - lat1) ** 2 + (lon2 - lon1) ** 2);
+};
+
+const getDistanceInKmApprox = ({ lat1, lon1 }, { lat2, lon2 }) => {
+  return getDistanceInDegrees({ lat1, lon1 }, { lat2, lon2 }) * 111;
+};
+
 io.on("connection", (socket) => {
   console.log(
-    `User with id ${socket.id} connected at ${new Date().toLocaleString()}`
+    `${new Date().toLocaleString()}: User with id ${socket.id} connected`
   );
 
   socket.on("disconnect", () => {
     console.log(
-      `User with id ${socket.id} disconnected at ${new Date().toLocaleString()}`
+      `${new Date().toLocaleString()}: User with id ${socket.id} disconnected`
     );
   });
 
@@ -25,21 +33,31 @@ io.on("connection", (socket) => {
 
   socket.on("positional message", async (msg) => {
     const allSockets = await io.fetchSockets();
-    const receivers = allSockets
-      .map((s) => s.id)
-      .filter((id) => id < socket.id);
+    const receivers = allSockets.filter(
+      (s) => getDistanceInKmApprox(socket.data, s.data) < 1
+    );
     if (receivers.length > 0) {
       io.to(receivers).emit("positional message", msg);
       console.log(
-        `${
+        `${new Date().toLocaleString()}: ${
           socket.id
-        } sent the following message to ${receivers} at ${new Date().toLocaleString()}: \n"${msg}"`
+        } sent the following message to [ ${receivers} ]: \n"${msg}"`
       );
     } else {
       console.log(
-        `${socket.id} sent the following message but no one will receive it: \n"${msg}"`
+        `${new Date().toLocaleString()}: ${
+          socket.id
+        } sent the following message but no one will receive it: \n"${msg}"`
       );
     }
+  });
+
+  socket.on("position", (latitude, longitude) => {
+    socket.data.latitude = latitude;
+    socket.data.longitude = longitude;
+    console.log(
+      `User with id ${socket.id} reported position: ${latitude}, ${longitude}`
+    );
   });
 });
 
