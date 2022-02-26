@@ -52,7 +52,7 @@ export default function App() {
           });
           SocketService.sendLocation({
             latitude: location.coords.latitude,
-            longitude: location.coords.longitude
+            longitude: location.coords.longitude,
           });
         }
       );
@@ -111,7 +111,15 @@ export default function App() {
             region={mapRegion}
             style={styles.map}
           >
-            {/* {location ? <Marker key={0} coordinate={{ latitude: location.coords.latitude, longitude: location.coords.longitude }}> </Marker> : null} */}
+            {location && (
+              <Marker
+                key={0}
+                coordinate={{
+                  latitude: location.coords.latitude,
+                  longitude: location.coords.longitude,
+                }}
+              ></Marker>
+            )}
           </MapView>
           <View style={styles.inputContainer}>
             <Text>{errorMsg}</Text>
