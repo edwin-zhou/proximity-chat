@@ -8,10 +8,14 @@ app.get("/", (req, res) => {
 });
 
 io.on("connection", (socket) => {
-  console.log(`User with id ${socket.id} connected at ${new Date()}`);
+  console.log(
+    `User with id ${socket.id} connected at ${new Date().toLocaleString()}`
+  );
 
   socket.on("disconnect", () => {
-    console.log(`User with id ${socket.id} disconnected at ${new Date()}`);
+    console.log(
+      `User with id ${socket.id} disconnected at ${new Date().toLocaleString()}`
+    );
   });
 
   socket.on("chat message", (msg) => {
@@ -22,12 +26,20 @@ io.on("connection", (socket) => {
   socket.on("positional message", async (msg) => {
     const allSockets = await io.fetchSockets();
     const receivers = allSockets
-      .filter((s) => s.id < socket.id);
-    console.log()
-    const receiversReduced
-      .reduce((acc, s) => acc.to(`socket#${s.id}`), io);
-    receivers.emit("positional message", msg);
-    console.log
+      .map((s) => s.id)
+      .filter((id) => id < socket.id);
+    if (receivers.length > 0) {
+      io.to(receivers).emit("positional message", msg);
+      console.log(
+        `${
+          socket.id
+        } sent the following message to ${receivers} at ${new Date().toLocaleString()}: \n"${msg}"`
+      );
+    } else {
+      console.log(
+        `${socket.id} sent the following message but no one will receive it: \n"${msg}"`
+      );
+    }
   });
 });
 
