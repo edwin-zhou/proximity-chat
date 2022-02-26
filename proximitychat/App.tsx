@@ -1,16 +1,23 @@
-import React, {useEffect} from 'react';
-import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
-import MapView from 'react-native-maps';
-import { StyleSheet, Text, View, TextInput} from "react-native";
-import SocketService from './SocketService';
-import {Divider, Appbar, Button} from 'react-native-paper'
+import React, { useEffect } from "react";
+import { useState } from "react";
+import MapView from "react-native-maps";
+import {
+  Button,
+  StyleSheet,
+  View,
+  TextInput,
+  Platform,
+  KeyboardAvoidingView,
+  Keyboard,
+  TouchableWithoutFeedback,
+} from "react-native";
+import SocketService from "./SocketService";
 
 export default function App() {
   useEffect(() => {
-    SocketService.onReceiveLocation()
-    SocketService.onReceiveMessage()
-  })
+    SocketService.onReceiveLocation();
+    SocketService.onReceiveMessage();
+  });
 
   const [mapRegion, setmapRegion] = useState({
     latitude: 37.78825,
@@ -19,53 +26,71 @@ export default function App() {
     longitudeDelta: 0.0421,
   });
 
-  const [text, onChangeText] = React.useState("");
-
+  const [text, setText] = React.useState("");
 
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: "#fff",
-      alignItems: "stretch",
-      justifyContent: "space-evenly",
     },
+    inner: {
+      flex: 1,
+      alignItems: "stretch",
+      justifyContent: "flex-start",
+    },
+    map: {
+      flexGrow: 1,
+      flexShrink: 1,
+      flexBasis: "auto",
+    },
+    inputContainer: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+      alignItems: "center",
+    },
+    input: {
+      flex: 1,
+      height: 40,
+      paddingHorizontal: 12,
+      margin: 10,
+      borderColor: "#777777",
+      borderWidth: 1,
+      borderRadius: 20,
+    },
+    sendButton: {},
   });
 
   function handleSendMessage() {
-    SocketService.onSend(text)
+    if (text.trim().length > 0) {
+      SocketService.send(text);
+      setText("");
+    }
   }
 
   return (
-    <View style={{height: "100%"}}>
-      <MapView
-        region={mapRegion}
-        style={{height: "92%"}}>
-      </MapView>
-      {/* <Divider></Divider> */}
-
-      <View style={{alignItems: "center"}}>
-        <TextInput
-          value={text}
-          placeholder="Send a message"
-          onChangeText={onChangeText}
-        />
-
-        <Button 
-          icon="send"
-          disabled={text.trim().length === 0}
-          onPress={handleSendMessage} 
-          >
-
-        </Button>
-      </View>
-
-
-
-
-
-      <StatusBar style="auto" />
-    </View>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.inner}>
+          <MapView region={mapRegion} style={styles.map}></MapView>
+          <View style={styles.inputContainer}>
+            <TextInput
+              value={text}
+              placeholder="Send a message"
+              onChangeText={setText}
+              style={styles.input}
+            />
+            <Button
+              title="Send"
+              disabled={text.trim().length === 0}
+              onPress={handleSendMessage}
+            ></Button>
+            <View style={{ width: 10 }}></View>
+          </View>
+          <View style={{ height: Platform.OS === "ios" ? 10 : 0 }}></View>
+        </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }
-
-
