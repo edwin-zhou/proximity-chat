@@ -17,7 +17,6 @@ import * as Location from "expo-location";
 export default function App() {
   useEffect(() => {
     SocketService.onReceiveLocation();
-    SocketService.onReceiveMessage();
   });
 
   const [location, setLocation] = useState<any>(null);
@@ -110,7 +109,9 @@ export default function App() {
             scrollEnabled={false}
             region={mapRegion}
             style={styles.map}
-          ></MapView>
+          >
+            
+          </MapView>
           <View style={styles.inputContainer}>
             <Text>{errorMsg}</Text>
             {!errorMsg && location && (
