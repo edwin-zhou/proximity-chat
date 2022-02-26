@@ -42,7 +42,7 @@ io.on("connection", (socket) => {
           s.data.longitude
         );
         console.log(d);
-        return d < 1000;
+        return d < 1000 && s.id !== socket.id;
       })
       .map((s) => s.id);
     if (receivers.length > 0) {
