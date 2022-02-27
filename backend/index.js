@@ -17,23 +17,36 @@ const getDistanceInKmApprox = (lat1, lon1, lat2, lon2) => {
   return getDistanceInDegrees(lat1, lon1, lat2, lon2) * 111e3;
 };
 
+let interval
 io.on("connection", (socket) => {
   console.log(
     `${new Date().toLocaleString()}: User with id ${socket.id} connected`
   );
-
+  if (interval) {
+    clearInterval(interval);
+  }
   socket.on("disconnect", () => {
-    // console.log(
-    //   `${new Date().toLocaleString()}: User with id ${socket.id} disconnected`
-    // );
+    console.log(
+      `${new Date().toLocaleString()}: User with id ${socket.id} disconnected`
+    );
+    clearInterval(interval);
   });
+
+  interval = setInterval(async () => {
+    const message = Object.keys(users).map((name) => ({
+      id: name,
+      location: users[name],
+    }));
+    io.emit("locations", message);
+  }, 10000);
 
   socket.on("chat message", (msg) => {
     console.log(`message: ${msg}`);
     io.emit("chat message", msg);
   });
 
-  socket.on("local message", async (name, msg) => {
+  socket.on("local message", async (name, msg, ack) => {
+    console.log(`message sent ${name}`)
     const allSockets = await io.fetchSockets();
     const receivers = allSockets.map((s) => s.id);
     if (receivers.length > 0) {
@@ -41,10 +54,16 @@ io.on("connection", (socket) => {
       console.log(
         `${new Date().toLocaleString()}: ${name} sent the following message to [ ${receivers} ]: \n"${msg}"`
       );
+      ack({
+        status: "ok"
+      })
     } else {
       console.log(
         `${new Date().toLocaleString()}: ${name} sent the following message but no one will receive it: \n"${msg}"`
       );
+      ack({
+        status: "czi"
+      })
     }
   });
 
@@ -56,15 +75,6 @@ io.on("connection", (socket) => {
     );
   });
 });
-
-const positionReportInterval = setInterval(async () => {
-  const message = Object.keys(users).map((name) => ({
-    id: name,
-    location: users[name],
-  }));
-  console.log(message);
-  io.emit("locations", message);
-}, 10000);
 
 http.listen(port, () => {
   console.log(`Socket.IO server running at http://localhost:${port}/`);
