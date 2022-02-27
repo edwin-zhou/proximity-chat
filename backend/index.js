@@ -7,6 +7,8 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
+let users = {};
+
 const getDistanceInDegrees = (lat1, lon1, lat2, lon2) => {
   return Math.sqrt((lat2 - lat1) ** 2 + (lon2 - lon1) ** 2);
 };
@@ -16,14 +18,14 @@ const getDistanceInKmApprox = (lat1, lon1, lat2, lon2) => {
 };
 
 io.on("connection", (socket) => {
-  console.log(
-    `${new Date().toLocaleString()}: User with id ${socket.id} connected`
-  );
+  // console.log(
+  //   `${new Date().toLocaleString()}: User with id ${socket.id} connected`
+  // );
 
   socket.on("disconnect", () => {
-    console.log(
-      `${new Date().toLocaleString()}: User with id ${socket.id} disconnected`
-    );
+    // console.log(
+    //   `${new Date().toLocaleString()}: User with id ${socket.id} disconnected`
+    // );
   });
 
   socket.on("chat message", (msg) => {
@@ -31,69 +33,47 @@ io.on("connection", (socket) => {
     io.emit("chat message", msg);
   });
 
-  socket.on("local message", async (msg) => {
+  socket.on("local message", async (name, msg) => {
     const allSockets = await io.fetchSockets();
     const receivers = allSockets
       .filter((s) => {
-        const d = getDistanceInKmApprox(
-          socket.data.latitude,
-          socket.data.longitude,
-          s.data.latitude,
-          s.data.longitude
-        );
-        console.log(d);
-        return d < 1000 && s.id !== socket.id;
+        // const d = getDistanceInKmApprox(
+        //   socket.data.latitude,
+        //   socket.data.longitude,
+        //   s.data.latitude,
+        //   s.data.longitude
+        // );
+        return s.id !== socket.id;
       })
       .map((s) => s.id);
     if (receivers.length > 0) {
-      io.to(receivers).emit("local message", msg);
+      io.to(receivers).emit("local message", { id: name, message: msg });
       console.log(
-        `${new Date().toLocaleString()}: ${
-          socket.id
-        } sent the following message to [ ${receivers} ]: \n"${msg}"`
+        `${new Date().toLocaleString()}: ${name} sent the following message to [ ${receivers} ]: \n"${msg}"`
       );
     } else {
       console.log(
-        `${new Date().toLocaleString()}: ${
-          socket.id
-        } sent the following message but no one will receive it: \n"${msg}"`
+        `${new Date().toLocaleString()}: ${name} sent the following message but no one will receive it: \n"${msg}"`
       );
     }
   });
 
-  socket.on("location", ({ latitude, longitude }) => {
-    socket.data.latitude = latitude;
-    socket.data.longitude = longitude;
+  socket.on("location", (name, { latitude, longitude }) => {
+    users[name].latitude = latitude;
+    users[name].longitude = longitude;
     console.log(
-      `User with id ${socket.id} reported position: ${latitude}, ${longitude}`
+      `User with id ${name} reported position: ${latitude}, ${longitude}`
     );
   });
 
   const positionReportInterval = setInterval(async () => {
-    const allSockets = await io.fetchSockets();
-    const nearbyUsers = allSockets.filter((s) => {
-      const d = getDistanceInKmApprox(
-        socket.data.latitude,
-        socket.data.longitude,
-        s.data.latitude,
-        s.data.longitude
-      );
-      return d < 1000 && s.id !== socket.id;
-    });
-    if (nearbyUsers.length > 0) {
-      io.to(socket.id).emit(
-        "locations",
-        nearbyUsers.map((s) => {
-          return {
-            id: s.id,
-            location: {
-              latitude: s.data.latitude,
-              longitude: s.data.longitude,
-            },
-          };
-        })
-      );
-    }
+    io.emit(
+      "locations",
+      Object.keys(users).map((name) => ({
+        id: name,
+        location: users[name],
+      }))
+    );
   }, 10000);
 });
 
