@@ -135,7 +135,6 @@ export default function App() {
     },
     sendButton: {},
   });
-  let textName;
   if (notSet) {
     return (
       <Provider>
@@ -146,10 +145,7 @@ export default function App() {
             onDismiss={hideModal}
             contentContainerStyle={containerStyle}
           >
-            <TextInput
-              value={textName}
-              onChangeText={(textName) => setName(textName)}
-            />
+            <TextInput onChangeText={(textName) => setName(textName)} />
             <Button
               mode="contained"
               onPress={() => {
