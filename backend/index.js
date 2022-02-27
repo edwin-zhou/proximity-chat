@@ -35,17 +35,7 @@ io.on("connection", (socket) => {
 
   socket.on("local message", async (name, msg) => {
     const allSockets = await io.fetchSockets();
-    const receivers = allSockets
-      .filter((s) => {
-        // const d = getDistanceInKmApprox(
-        //   socket.data.latitude,
-        //   socket.data.longitude,
-        //   s.data.latitude,
-        //   s.data.longitude
-        // );
-        return s.id !== socket.id;
-      })
-      .map((s) => s.id);
+    const receivers = allSockets.map((s) => s.id);
     if (receivers.length > 0) {
       io.to(receivers).emit("local message", { id: name, message: msg });
       console.log(
@@ -59,8 +49,8 @@ io.on("connection", (socket) => {
   });
 
   socket.on("location", (name, { latitude, longitude }) => {
-    users[name].latitude = latitude;
-    users[name].longitude = longitude;
+    console.log(name, latitude, longitude);
+    users[name] = { latitude, longitude };
     console.log(
       `User with id ${name} reported position: ${latitude}, ${longitude}`
     );
