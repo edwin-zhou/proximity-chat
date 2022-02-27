@@ -32,15 +32,6 @@ io.on("connection", (socket) => {
     clearInterval(interval);
   });
 
-  interval = setInterval(async () => {
-    console.log("hello")
-    const message = Object.keys(users).map((name) => ({
-      id: name,
-      location: users[name],
-    }));
-    io.emit("locations", message);
-  }, 10000);
-
   socket.on("chat message", (msg) => {
     console.log(`message: ${msg}`);
     io.emit("chat message", msg);
@@ -79,4 +70,12 @@ io.on("connection", (socket) => {
 
 http.listen(port, () => {
   console.log(`Socket.IO server running at http://localhost:${port}/`);
+  setInterval(async () => {
+    console.log("hello")
+    const message = Object.keys(users).map((name) => ({
+      id: name,
+      location: users[name],
+    }));
+    io.emit("locations", message);
+  }, 10000);
 });
