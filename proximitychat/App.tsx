@@ -23,7 +23,30 @@ export default function App() {
   const [name, setName] = React.useState("");
   const [notSet, setNotSet] = React.useState(true);
   const showModal = () => setVisible(true);
-  const hideModal = () => setVisible(false);
+  const hideModal = async () => {
+    let { status } = await GeoLocation.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      console.warn("Permission to access location was denied");
+      return;
+    }
+    GeoLocation.watchPositionAsync(
+      { accuracy: 6, distanceInterval: 1 },
+      (location) => {
+        setLocation(location);
+        setMapRegion({
+          latitude: Number(location.coords.latitude),
+          longitude: Number(location.coords.longitude),
+          latitudeDelta: mapRegion.latitudeDelta,
+          longitudeDelta: mapRegion.longitudeDelta,
+        });
+        socket.emit("location", name, {
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        });
+      }
+    );
+    setVisible(false);
+  };
   const containerStyle = { backgroundColor: "white", padding: 20 };
 
   const socket = io("https://proximitychat.glcrx.com");
@@ -39,22 +62,20 @@ export default function App() {
   const [users, setUsers] = useState<UserInfo[]>([]);
   const [messages, setMessages] = useState<any>({});
 
-  useEffect(() => {
-    socket.once("local message", (message: UserMessage) => {
+  socket.on("local message", (message: UserMessage) => {
+    let nextMessages = { ...messages };
+    // console.log(JSON.stringify(nextMessages));
+    nextMessages[message.id] = message.message;
+    // console.log(nextMessages)
+    setMessages(nextMessages);
+    // console.log(JSON.stringify(messages));
+    setTimeout(() => {
       let nextMessages = { ...messages };
-      // console.log(JSON.stringify(nextMessages));
-      nextMessages[message.id] = message.message;
-      // console.log(nextMessages)
-      setMessages(nextMessages);
-      // console.log(JSON.stringify(messages));
-      setTimeout(() => {
-        let nextMessages = { ...messages };
-        if (nextMessages[message.id] === message.message) {
-          delete nextMessages[message.id];
-          setMessages(nextMessages);
-        }
-      }, 15000);
-    });
+      if (nextMessages[message.id] === message.message) {
+        delete nextMessages[message.id];
+        setMessages(nextMessages);
+      }
+    }, 15000);
   });
 
   socket.on("locations", (locations: UserInfo[]) => {
@@ -67,32 +88,6 @@ export default function App() {
       emojis.length;
     return emojis[key];
   };
-
-  useEffect(() => {
-    (async () => {
-      let { status } = await GeoLocation.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        console.warn("Permission to access location was denied");
-        return;
-      }
-      GeoLocation.watchPositionAsync(
-        { accuracy: 6, distanceInterval: 1 },
-        (location) => {
-          setLocation(location);
-          setMapRegion({
-            latitude: Number(location.coords.latitude),
-            longitude: Number(location.coords.longitude),
-            latitudeDelta: mapRegion.latitudeDelta,
-            longitudeDelta: mapRegion.longitudeDelta,
-          });
-          socket.emit("location", name, {
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
-          });
-        }
-      );
-    })();
-  }, []);
 
   const handleSendMessage = () => {
     if (text.trim().length > 0) {
