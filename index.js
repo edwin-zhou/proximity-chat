@@ -18,7 +18,7 @@ const getDistanceInKmApprox = (lat1, lon1, lat2, lon2) => {
   return getDistanceInDegrees(lat1, lon1, lat2, lon2) * 111e3;
 };
 
-let interval
+// let interval
 io.on("connection", (socket) => {
   // console.log(
   //   `${new Date().toLocaleString()}: User with id ${socket.id} connected`
@@ -28,18 +28,18 @@ io.on("connection", (socket) => {
   } else {
   }
 
-  if (interval) {
-    clearInterval(interval);
-  }
+  // if (interval) {
+  //   clearInterval(interval);
+  // }
   socket.on("disconnect", () => {
     if (userlog[socket.id]) {
       delete userlog[socket.id]
     } else {
     }
-    console.log(
-      `${new Date().toLocaleString()}: User with id ${socket.id} disconnected`
-    );
-    clearInterval(interval);
+    // console.log(
+    //   `${new Date().toLocaleString()}: User with id ${socket.id} disconnected`
+    // );
+    // clearInterval(interval);
   });
 
   socket.on("chat message", (msg) => {
