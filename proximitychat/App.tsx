@@ -29,7 +29,7 @@ export default function App() {
   const hideModal = () => setVisible(false);
   const containerStyle = {backgroundColor: 'white', padding: 20};
 
-  const socket = io("https://proximitychat.glcrx.com");
+  const socket = io("http://localhost:3000");
   const [location, setLocation] = useState<any>(null);
   const [mapRegion, setMapRegion] = useState({
     latitude: 37.78825,
@@ -62,6 +62,7 @@ export default function App() {
   })
 
   socket.on("locations", (locations: UserInfo[]) => {
+    console.log(locations)
     setUsers(locations);
   });
 
@@ -94,7 +95,7 @@ export default function App() {
         }
       );
     })();
-  }, []);
+  });
 
   const handleSendMessage = () => {
     if (text.trim().length > 0) {
@@ -141,16 +142,15 @@ export default function App() {
   if (notSet) {
     return (
       <Provider>
-    <Portal>
-         <Modal dismissable={false} visible={visible} onDismiss={hideModal} contentContainerStyle={containerStyle}>
-         <TextInput
-          value={textName}
-          label="textName"
-          onChangeText={textName => setId(textName)}
-          />
-      <Button mode="contained" onPress={() => {setNotSet(false); hideModal(); console.log(name)}}>
-    Chat
-  </Button>
+        <Portal>
+            <Modal dismissable={false} visible={visible} onDismiss={hideModal} contentContainerStyle={containerStyle}>
+            <TextInput
+              value={textName}
+              onChangeText={textName => setId(textName)}
+              />
+          <Button mode="contained" onPress={() => {setNotSet(false); hideModal(); console.log(name)}}>
+        Chat
+      </Button>
          </Modal>
       </Portal>
     </Provider>
@@ -193,6 +193,7 @@ export default function App() {
                   {users.map((user: UserInfo, index: number) => (
                     <View key={index}>
                       <Marker
+                        pinColor={'red'}
                         coordinate={{
                           latitude: user.location.latitude,
                           longitude: user.location.longitude,

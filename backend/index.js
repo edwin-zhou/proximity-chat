@@ -18,9 +18,9 @@ const getDistanceInKmApprox = (lat1, lon1, lat2, lon2) => {
 };
 
 io.on("connection", (socket) => {
-  // console.log(
-  //   `${new Date().toLocaleString()}: User with id ${socket.id} connected`
-  // );
+  console.log(
+    `${new Date().toLocaleString()}: User with id ${socket.id} connected`
+  );
 
   socket.on("disconnect", () => {
     // console.log(
