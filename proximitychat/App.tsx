@@ -18,7 +18,7 @@ import * as GeoLocation from "expo-location";
 import emojis from "./Emojis";
 
 export default function App() {
-  const [socket, setSocket] = useState<Socket>(io("http://localhost:3000/"));
+  const [socket, setSocket] = useState<Socket>(io("https://teamchatarea.herokuapp.com/"));
   // io("http://localhost:3000/", {transports: ['websocket']})
 
   const [visible, setModalVisibility] = React.useState(true);
@@ -43,7 +43,7 @@ export default function App() {
   };
 
   useEffect(() => {
-    setSocket(io("http://localhost:3000/"))
+    setSocket(io("https://teamchatarea.herokuapp.com/"))
     socket.on("locations", (locations: UserInfo[]) => {
       console.log(locations)
       setUsers(locations);
@@ -56,7 +56,7 @@ export default function App() {
         return;
       }
       GeoLocation.watchPositionAsync(
-        { accuracy: 6, distanceInterval: 1 },
+        { accuracy: 5, distanceInterval: 2},
         (location) => {
           setLocation(location);
           setMapRegion({
@@ -72,12 +72,6 @@ export default function App() {
         }
       );
     })
-
-    // setSocket(nsocket)
-    // socket.on("locations", (locations: UserInfo[]) => {
-    //   console.log(locations)
-    //   setUsers(locations);
-    // });
 
   }, [])
 
