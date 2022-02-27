@@ -33,6 +33,7 @@ io.on("connection", (socket) => {
   });
 
   interval = setInterval(async () => {
+    console.log("hello")
     const message = Object.keys(users).map((name) => ({
       id: name,
       location: users[name],
