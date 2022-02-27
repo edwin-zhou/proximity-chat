@@ -3,26 +3,27 @@ import MapView, { Marker } from "react-native-maps";
 import { Location, User, UserInfo, UserMessage } from "./Interfaces";
 import {
   Image,
-  Button,
+  TextInput,
   StyleSheet,
   View,
   Text,
-  TextInput,
   Platform,
   KeyboardAvoidingView,
   Keyboard,
   TouchableWithoutFeedback,
-  ScrollView,
-  Modal, 
 } from "react-native";
-import { Chip } from "react-native-paper";
+import { Chip,  Modal, Button,
+  Portal,
+  Provider} from "react-native-paper";
 import io from "socket.io-client";
 import * as GeoLocation from "expo-location";
 
 
 export default function App() {
   //modal
-  const [visible, setVisible] = React.useState(false);
+  const [visible, setVisible] = React.useState(true);
+  const [id, setId] = React.useState("");
+  const [notSet, setNotSet] = React.useState(true);
   const showModal = () => setVisible(true);
   const hideModal = () => setVisible(false);
   const containerStyle = {backgroundColor: 'white', padding: 20};
@@ -40,7 +41,6 @@ export default function App() {
   const emojis = [
     '😄','😃','😀','😊','☺','😉','😍','😘','😚','😗','😙','😜','😝','😛','😳','😁','😔','😌','😒','😞','😣','😢','😂','😭','😪','😥','😰','😅','😓','😩','😫','😨','😱','😠','😡','😤','😖','😆','😋','😷','😎','😴','😵','😲','😟','😦','😧','😈','👿','😮','😬','😐','😕','😯','😶','😇','😏','😑','👲','👳','👮','👷','💂','👶','👦','👧','👨','👩','👴','👵','👱','👼','👸','😺','😸','😻','😽','😼','🙀','😿','😹','😾','👹','👺','🙈','🙉','🙊','💀','👽','💩','🔥','✨','🌟','💫','💥','💢','💦','💧','💤','💨','👂','👀','👃','👅','👄','👍','👎','👌','👊','✊','✌','👋','✋','👐','👆','👇','👉','👈','🙌','🙏','☝','👏','💪','🚶','🏃','💃','👫','👪','👬','👭','💏','💑','👯','🙆','🙅','💁','🙋','💆','💇','💅','👰','🙎','🙍','🙇','🎩','👑','👒','👟','👞','👡','👠','👢','👕','👔','👚','👗','🎽','👖','👘','👙','💼','👜','👝','👛','👓','🎀','🌂','💄','💛','💙','💜','💚','❤','💔','💗','💓','💕','💖','💞','💘','💌','💋','💍','💎','👤','👥','💬','👣','💭','🐶','🐺','🐱','🐭','🐹','🐰','🐸','🐯','🐨','🐻','🐷','🐽','🐮','🐗','🐵','🐒','🐴','🐑','🐘','🐼','🐧','🐦','🐤','🐥','🐣','🐔','🐍','🐢','🐛','🐝','🐜','🐞','🐌','🐙','🐚','🐠','🐟','🐬','🐳','🐋','🐄','🐏','🐀','🐃','🐅','🐇','🐉','🐎','🐐','🐓','🐕','🐖','🐁','🐂','🐲','🐡','🐊','🐫','🐪','🐆','🐈','🐩','🐾','💐','🌸','🌷','🍀','🌹','🌻','🌺','🍁','🍃','🍂','🌿','🌾','🍄','🌵','🌴','🌲','🌳','🌰','🌱','🌼','🌐','🌞','🌝','🌚','🌑','🌒','🌓','🌔','🌕','🌖','🌗','🌘','🌜','🌛','🌙','🌍','🌎','🌏','🌋','🌌','🌠','⭐','☀','⛅','☁','⚡','☔','❄','⛄','🌀','🌁','🌈','🌊','🎍','💝','🎎','🎒','🎓','🎏','🎆','🎇','🎐','🎑','🎃','👻','🎅','🎄','🎁','🎋','🎉','🎊','🎈','🎌','🔮','🎥','📷','📹','📼','💿','📀','💽','💾','💻','📱','☎','📞','📟','📠','📡','📺','📻','🔊','🔉','🔈','🔇','🔔','🔕','📢','📣','⏳','⌛','⏰','⌚','🔓','🔒','🔏','🔐','🔑','🔎','💡','🔦','🔆','🔅','🔌','🔋','🔍','🛁','🛀','🚿','🚽','🔧','🔩','🔨','🚪','🚬','💣','🔫','🔪','💊','💉','💰','💴','💵','💷','💶','💳','💸','📲','📧','📥','📤','✉','📩','📨','📯','📫','📪','📬','📭','📮','📦','📝','📄','📃','📑','📊','📈','📉','📜','📋','📅','📆','📇','📁','📂','✂','📌','📎','✒','✏','📏','📐','📕','📗','📘','📙','📓','📔','📒','📚','📖','🔖','📛','🔬','🔭','📰','🎨','🎬','🎤','🎧','🎼','🎵','🎶','🎹','🎻','🎺','🎷','🎸','👾','🎮','🃏','🎴','🀄','🎲','🎯','🏈','🏀','⚽','⚾','🎾','🎱','🏉','🎳','⛳','🚵','🚴','🏁','🏇','🏆','🎿','🏂','🏊','🏄','🎣','☕','🍵','🍶','🍼','🍺','🍻','🍸','🍹','🍷','🍴','🍕','🍔','🍟','🍗','🍖','🍝','🍛','🍤','🍱','🍣','🍥','🍙','🍘','🍚','🍜','🍲','🍢','🍡','🍳','🍞','🍩','🍮','🍦','🍨','🍧','🎂','🍰','🍪','🍫','🍬','🍭','🍯','🍎','🍏','🍊','🍋','🍒','🍇','🍉','🍓','🍑','🍈','🍌','🍐','🍍','🍠','🍆','🍅','🌽','🏠','🏡','🏫','🏢','🏣','🏥','🏦','🏪','🏩','🏨','💒','⛪','🏬','🏤','🌇','🌆','🏯','🏰','⛺','🏭','🗼','🗾','🗻','🌄','🌅','🌃','🗽','🌉','🎠','🎡','⛲','🎢','🚢','⛵','🚤','🚣','⚓','🚀','✈','💺','🚁','🚂','🚊','🚉','🚞','🚆','🚄','🚅','🚈','🚇','🚝','🚋','🚃','🚎','🚌','🚍','🚙','🚘','🚗','🚕','🚖','🚛','🚚','🚨','🚓','🚔','🚒','🚑','🚐','🚲','🚡','🚟','🚠','🚜','💈','🚏','🎫','🚦','🚥','⚠','🚧','🔰','⛽','🏮','🎰','♨','🗿','🎪','🎭','📍','🚩','⬆','⬇','⬅','➡','🔠','🔡','🔤','↗','↖','↘','↙','↔','↕','🔄','◀','▶','🔼','🔽','↩','↪','ℹ','⏪','⏩','⏫','⏬','⤵','⤴','🆗','🔀','🔁','🔂','🆕','🆙','🆒','🆓','🆖','📶','🎦','🈁','🈯','🈳','🈵','🈴','🈲','🉐','🈹','🈺','🈶','🈚','🚻','🚹','🚺','🚼','🚾','🚰','🚮','🅿','♿','🚭','🈷','🈸','🈂','Ⓜ','🛂','🛄','🛅','🛃','🉑','㊙','㊗','🆑','🆘','🆔','🚫','🔞','📵','🚯','🚱','🚳','🚷','🚸','⛔','✳','❇','❎','✅','✴','💟','🆚','📳','📴','🅰','🅱','🆎','🅾','💠','➿','♻','♈','♉','♊','♋','♌','♍','♎','♏','♐','♑','♒','♓','⛎','🔯','🏧','💹','💲','💱','©','®','™','〽','〰','🔝','🔚','🔙','🔛','🔜','❌','⭕','❗','❓','❕','❔','🔃','🕛','🕧','🕐','🕜','🕑','🕝','🕒','🕞','🕓','🕟','🕔','🕠','🕕','🕖','🕗','🕘','🕙','🕚','🕡','🕢','🕣','🕤','🕥','🕦','✖','➕','➖','➗','♠','♥','♣','♦','💮','💯','✔','☑','🔘','🔗','➰','🔱','🔲','🔳','◼','◻','◾','◽','▪','▫','🔺','⬜','⬛','⚫','⚪','🔴','🔵','🔻','🔶','🔷','🔸','🔹'
   ];
-  const [emojiMapping, setEmojiMapping] = React.useState(new Map())
   const [users, setUsers] = useState<UserInfo[]>([]);
   const [messages, setMessages] = useState<any>({});
 
@@ -63,15 +63,12 @@ export default function App() {
   })
 
   socket.on("locations", (locations: UserInfo[]) => {
-    locations.forEach((userInfo) => {
-      
-    })
     setUsers(locations);
   });
 
   const toEmoji = (name: String): String => {
-    name.charCodeAt(0) 
-    return ""
+    const key = name.split("").reduce((acc, c) => c.charCodeAt(0) * acc, 1) % emojis.length
+    return emojis[key]
   }
 
   useEffect(() => {
@@ -141,90 +138,100 @@ export default function App() {
     },
     sendButton: {},
   });
-
-  return (
-    <View>
-      {/* <Modal visible={visible} onDismiss={hideModal} contentContainerStyle={containerStyle}>
-            <TextInput
-              label="name"
-              value={idName}
-              onChangeText={idName => setId(idName)}
-            />
-         <Text>Example Modal.  Click outside this area to dismiss.</Text>
-      </Modal> */}
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={styles.container}
-        > 
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <View style={styles.inner}>
-              <MapView
-                zoomEnabled={false}
-                pitchEnabled={false}
-                scrollEnabled={false}
-                region={mapRegion}
-                style={styles.map}
-              >
-                {location && (
-                  <View>
-                    <Marker
-                      style={{justifyContent: "center", alignItems: "center"}}
-                      coordinate={{
-                        latitude: location.coords.latitude,
-                        longitude: location.coords.longitude,
-                    }}>
-                    { ownMessage ?
-                    <View style={{backgroundColor: "#fefefe", borderRadius:12, padding: 5}}>
-                      <Text numberOfLines={5} style={{maxWidth:100}}>{ownMessage}</Text>
+  let name;
+  if (notSet) {
+    return (
+      <Provider>
+    <Portal>
+         <Modal dismissable={false} visible={visible} onDismiss={hideModal} contentContainerStyle={containerStyle}>
+         <TextInput
+          value={name}
+          label="name"
+          onChangeText={name => setId(name)}
+          />
+      <Button mode="contained" onPress={() => {setNotSet(false); hideModal(); console.log(id)}}>
+    Chat
+  </Button>
+         </Modal>
+      </Portal>
+    </Provider>
+    )
+  }
+  else{
+    return (
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={styles.container}
+          > 
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+              <View style={styles.inner}>
+                <MapView
+                  zoomEnabled={false}
+                  pitchEnabled={false}
+                  scrollEnabled={false}
+                  region={mapRegion}
+                  style={styles.map}
+                >
+                  {location && (
+                    <View>
+                      <Marker
+                        style={{justifyContent: "center", alignItems: "center"}}
+                        coordinate={{
+                          latitude: location.coords.latitude,
+                          longitude: location.coords.longitude,
+                      }}>
+                        { ownMessage ?
+                        <View style={{backgroundColor: "#fefefe", borderRadius:12, padding: 5}}>
+                          <Text numberOfLines={5} style={{maxWidth:100}}>{ownMessage}</Text>
+                        </View>
+                        :
+                        <View></View>
+                        }
+                        <Text style={{fontSize:35}}>{toEmoji(id)}</Text>
+                      </Marker>
                     </View>
-                    :
-                    <View></View>
-                    }
-                      <Text style={{fontSize:35}}>{emojis[Math.floor(Math.random() * emojis.length)]}</Text>
-                    </Marker>
+                  )}
+                  {users.map((user: UserInfo, index: number) => (
+                    <View key={index}>
+                      <Marker
+                        pinColor={'red'}
+                        coordinate={{
+                          latitude: user.location.latitude,
+                          longitude: user.location.longitude,
+                        }}
+                        style={{justifyContent: "center", alignItems: "center"}}
+                      >
+                      { messages[user.id] ?
+                      <View style={{left:-25, backgroundColor: "#fefefe", borderRadius:12, padding: 5}}>
+                        <Text numberOfLines={5} style={{maxWidth:100}}>{messages[user.id]}</Text>
+                      </View>
+                      :
+                      <View></View>
+                      }       
+                      </Marker>  
+                      <Text style={{fontSize:35}}>{toEmoji(user.id)}</Text>
+                    </View>                       
+                  ))}
+                </MapView>
+                <View>
+                  <View style={styles.inputContainer}>
+                    <TextInput
+                      value={text}
+                      placeholder="Send a message"
+                      onChangeText={setText}
+                      style={styles.input}
+                    />
+                    <Button
+                      disabled={text.trim().length === 0}
+                      onPress={handleSendMessage}
+                    >Go</Button>
+                    <View style={{ width: 10 }}></View>
                   </View>
-                )}
-                {users.map((user: UserInfo, index: number) => (
-                  <View key={index}>
-                    <Marker
-                      pinColor={'red'}
-                      coordinate={{
-                        latitude: user.location.latitude,
-                        longitude: user.location.longitude,
-                      }}
-                      style={{justifyContent: "center", alignItems: "center"}}
-                    >
-                    { messages[user.id] ?
-                    <View style={{left:-25, backgroundColor: "#fefefe", borderRadius:12, padding: 5}}>
-                      <Text numberOfLines={5} style={{maxWidth:100}}>{messages[user.id]}</Text>
-                    </View>
-                    :
-                    <View></View>
-                    }       
-                    </Marker>  
-                  </View>                       
-                ))}
-              </MapView>
-              <View>
-                <View style={styles.inputContainer}>
-                  <TextInput
-                    value={text}
-                    placeholder="Send a message"
-                    onChangeText={setText}
-                    style={styles.input}
-                  />
-                  <Button
-                    title="Send"
-                    disabled={text.trim().length === 0}
-                    onPress={handleSendMessage}
-                  ></Button>
-                  <View style={{ width: 10 }}></View>
                 </View>
+                <View style={{ height: Platform.OS === "ios" ? 10 : 0 }}></View>
               </View>
-              <View style={{ height: Platform.OS === "ios" ? 10 : 0 }}></View>
-            </View>
-          </TouchableWithoutFeedback>
-        </KeyboardAvoidingView>
-      </View>
-  );
+            </TouchableWithoutFeedback>
+          </KeyboardAvoidingView>
+    );
+  }
 }
