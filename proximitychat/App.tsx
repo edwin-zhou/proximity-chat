@@ -13,84 +13,44 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import { Chip, Modal, Button, Portal, Provider } from "react-native-paper";
-import io from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 import * as GeoLocation from "expo-location";
 import emojis from "./Emojis";
 
 export default function App() {
-  //modal
-  const [visible, setVisible] = React.useState(true);
+  const [socket, setSocket] = useState<Socket>(io("http://localhost:3000/"));
+  // io("http://localhost:3000/", {transports: ['websocket']})
+
+  const [visible, setModalVisibility] = React.useState(true);
   const [name, setName] = React.useState("");
   const [notSet, setNotSet] = React.useState(true);
-  const showModal = () => setVisible(true);
-  const hideModal = async () => {
-    let { status } = await GeoLocation.requestForegroundPermissionsAsync();
-    if (status !== "granted") {
-      console.warn("Permission to access location was denied");
-      return;
-    }
-    GeoLocation.watchPositionAsync(
-      { accuracy: 6, distanceInterval: 1 },
-      (location) => {
-        setLocation(location);
-        setMapRegion({
-          latitude: Number(location.coords.latitude),
-          longitude: Number(location.coords.longitude),
-          latitudeDelta: mapRegion.latitudeDelta,
-          longitudeDelta: mapRegion.longitudeDelta,
-        });
-        socket.emit("location", name, {
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-        });
-      }
-    );
-    setVisible(false);
-  };
-  const containerStyle = { backgroundColor: "white", padding: 20 };
-
-  const socket = io("http://localhost:3000");
+  //modal
   const [location, setLocation] = useState<any>(null);
+  const [ownMessage, setOwnMessage] = React.useState("");
+  const [text, setText] = React.useState("");
+  const [users, setUsers] = useState<UserInfo[]>([]);
+  const [messages, setMessages] = useState<any>({});
   const [mapRegion, setMapRegion] = useState({
     latitude: 37.78825,
     longitude: -122.4324,
     latitudeDelta: 0.0024,
     longitudeDelta: 0.00011,
   });
-  const [ownMessage, setOwnMessage] = React.useState("");
-  const [text, setText] = React.useState("");
-  const [users, setUsers] = useState<UserInfo[]>([]);
-  const [messages, setMessages] = useState<any>({});
-
-  socket.on("local message", (message: UserMessage) => {
-    let nextMessages = { ...messages };
-    // console.log(JSON.stringify(nextMessages));
-    nextMessages[message.id] = message.message;
-    // console.log(nextMessages)
-    setMessages(nextMessages);
-    // console.log(JSON.stringify(messages));
-    setTimeout(() => {
-      let nextMessages = { ...messages };
-      if (nextMessages[message.id] === message.message) {
-        delete nextMessages[message.id];
-        setMessages(nextMessages);
-      }
-    }, 15000);
-  });
-
-  socket.on("locations", (locations: UserInfo[]) => {
-    console.log(locations)
-    setUsers(locations);
-  });
-
-  const toEmoji = (name: String): String => {
-    const key = name.split("").reduce((acc, c) => c.charCodeAt(0) * acc, 1) % emojis.length
-    return emojis[key]
-  }
+  const containerStyle = { backgroundColor: "white", padding: 20 };
+  
+  const startMap = async () => {
+    setModalVisibility(false);
+  };
 
   useEffect(() => {
-    (async () => {
-      let { status } = await GeoLocation.requestForegroundPermissionsAsync();
+    setSocket(io("http://localhost:3000/"))
+    socket.on("locations", (locations: UserInfo[]) => {
+      console.log(locations)
+      setUsers(locations);
+    });
+
+    GeoLocation.requestForegroundPermissionsAsync()
+    .then(({status}) => {
       if (status !== "granted") {
         console.warn("Permission to access location was denied");
         return;
@@ -111,12 +71,26 @@ export default function App() {
           });
         }
       );
-    })();
-  });
+    })
+
+    // setSocket(nsocket)
+    // socket.on("locations", (locations: UserInfo[]) => {
+    //   console.log(locations)
+    //   setUsers(locations);
+    // });
+
+  }, [])
+
+  const toEmoji = (name: String): String => {
+    const key = name.split("").reduce((acc, c) => c.charCodeAt(0) * acc, 1) % emojis.length
+    return emojis[key]
+  }
 
   const handleSendMessage = () => {
     if (text.trim().length > 0) {
-      socket.emit("local message", name, text);
+      socket.emit("local message", name, text, (response: any) => {
+        console.log(`emit response ${response}`)
+      });
       setOwnMessage(text);
       setText("");
       setTimeout(() => {
@@ -162,7 +136,7 @@ export default function App() {
           <Modal
             dismissable={false}
             visible={visible}
-            onDismiss={hideModal}
+            onDismiss={startMap}
             contentContainerStyle={containerStyle}
           >
             <TextInput onChangeText={(textName) => setName(textName)} />
@@ -170,8 +144,7 @@ export default function App() {
               mode="contained"
               onPress={() => {
                 setNotSet(false);
-                hideModal();
-                console.log(name);
+                startMap();
               }}
             >
               Chat
