@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import MapView, { Marker } from "react-native-maps";
 import { Location, User, UserInfo, UserMessage } from "./Interfaces";
 import {
+  SafeAreaView,
   Image,
   StyleSheet,
   View,
@@ -10,8 +11,9 @@ import {
   KeyboardAvoidingView,
   Keyboard,
   TouchableWithoutFeedback,
+  TextInput
 } from "react-native";
-import { Chip, Modal, Button, Portal, Provider, TextInput } from "react-native-paper";
+import { Chip, Modal, Button, Portal, Provider } from "react-native-paper";
 import io, { Socket } from "socket.io-client";
 import * as GeoLocation from "expo-location";
 import emojis from "./Emojis";
@@ -43,7 +45,6 @@ export default function App() {
 
   useEffect(() => {
     socket.on("locations", (locations: UserInfo[]) => {
-      console.log(locations)
       setUsers(locations);
     });
 
@@ -83,7 +84,6 @@ export default function App() {
   const handleSendMessage = () => {
     if (text.trim().length > 0) {
       socket.emit("local message", name, text, (response: any) => {
-        console.log(`emit response ${response}`)
       });
       setOwnMessage(text);
       setText("");
@@ -113,6 +113,7 @@ export default function App() {
       alignItems: "center",
     },
     input: {
+      bottom:-5,
       flex: 1,
       height: 40,
       paddingHorizontal: 12,
@@ -135,14 +136,17 @@ export default function App() {
             contentContainerStyle={containerStyle}
             style={{height:"100%"}}
           >
-            <Text>
-              ChatArea
-            </Text>
+
+            <SafeAreaView>
             <TextInput
-              label="your username"
               value={nameText}
-              onChangeText={nameText => setName(nameText)}
-            />
+              placeholder="Send a message"
+              onChangeText={setName}
+              // style={styles.input}
+            /></SafeAreaView>
+            <Text> </Text>
+            <Text> </Text>
+
             <Button
               mode="contained"
               onPress={() => {
@@ -196,6 +200,8 @@ export default function App() {
                       <View></View>
                     )}
                     <Text style={{ fontSize: 35 }}>{toEmoji(name)}</Text>
+                    <Text style={{ fontSize: 12 }}>{name}</Text>
+
                   </Marker>
                 </View>
               )}
@@ -208,7 +214,7 @@ export default function App() {
                     }}
                     style={{ justifyContent: "center", alignItems: "center" }}
                   >
-                    {messages[user.id] ? (
+                    {messages && messages[user?.id] ? (
                       <View
                         style={{
                           left: -25,
@@ -220,6 +226,7 @@ export default function App() {
                         <Text numberOfLines={5} style={{ maxWidth: 100 }}>
                           {messages[user.id]}
                         </Text>
+                        <Text style={{ fontSize: 35 }}>{toEmoji(user.id)}</Text>
                       </View>
                     ) : (
                       <View></View>
@@ -230,21 +237,25 @@ export default function App() {
               ))}
             </MapView>
             <View>
-              {/* <View style={styles.inputContainer}>
+              <View style={styles.inputContainer}>
+              <SafeAreaView>
                 <TextInput
                   value={text}
                   placeholder="Send a message"
                   onChangeText={setText}
-                  style={styles.input}
-                />
+                  style={{ width: 300 }}
+                  // style={styles.input}
+                /></SafeAreaView>
+                <View></View>
                 <Button
                   disabled={text.trim().length === 0}
                   onPress={handleSendMessage}
                 >
                   Go
-                </Button> */}
-                {/* <View style={{ width: 10 }}></View>
-              </View> */}
+                </Button>
+                <View style={{ width: 10 }}></View>
+                <View style={{ width: 10 }}></View>
+              </View>
             </View>
             <View style={{ height: Platform.OS === "ios" ? 10 : 0 }}></View>
           </View>
