@@ -63,10 +63,12 @@ export default function App() {
             latitudeDelta: mapRegion.latitudeDelta,
             longitudeDelta: mapRegion.longitudeDelta,
           });
-          socket.emit("location", name, {
-            latitude: location.coords.latitude,
-            longitude: location.coords.longitude,
-          });
+          if (name.trim().length != 0) {
+            socket.emit("location", name, {
+              latitude: location.coords.latitude,
+              longitude: location.coords.longitude,
+            });
+          }
         }
       );
     })
@@ -164,8 +166,8 @@ export default function App() {
           <View style={styles.inner}>
             <MapView
               zoomEnabled={false}
-              pitchEnabled={false}
               scrollEnabled={false}
+              pitchEnabled={false}
               region={mapRegion}
               style={styles.map}
             >
