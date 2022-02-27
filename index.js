@@ -8,6 +8,7 @@ app.get("/", (req, res) => {
 });
 
 let users = {};
+let userlog = {}
 
 const getDistanceInDegrees = (lat1, lon1, lat2, lon2) => {
   return Math.sqrt((lat2 - lat1) ** 2 + (lon2 - lon1) ** 2);
@@ -22,10 +23,19 @@ io.on("connection", (socket) => {
   // console.log(
   //   `${new Date().toLocaleString()}: User with id ${socket.id} connected`
   // );
+  if (!userlog[socket.id]) {
+    userlog[socket.id] = socket
+  } else {
+  }
+
   if (interval) {
     clearInterval(interval);
   }
   socket.on("disconnect", () => {
+    if (userlog[socket.id]) {
+      delete userlog[socket.id]
+    } else {
+    }
     console.log(
       `${new Date().toLocaleString()}: User with id ${socket.id} disconnected`
     );
@@ -40,6 +50,7 @@ io.on("connection", (socket) => {
   socket.on("local message", async (name, msg, ack) => {
     console.log(`message sent ${name}`)
     const allSockets = await io.fetchSockets();
+    console.log(`socket num ${allSockets.length}`)
     const receivers = allSockets.map((s) => s.id);
     if (receivers.length > 0) {
       io.to(receivers).emit("local message", { id: name, message: msg });
