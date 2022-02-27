@@ -55,17 +55,16 @@ io.on("connection", (socket) => {
       `User with id ${name} reported position: ${latitude}, ${longitude}`
     );
   });
-
-  const positionReportInterval = setInterval(async () => {
-    io.emit(
-      "locations",
-      Object.keys(users).map((name) => ({
-        id: name,
-        location: users[name],
-      }))
-    );
-  }, 10000);
 });
+
+const positionReportInterval = setInterval(async () => {
+  const message = Object.keys(users).map((name) => ({
+    id: name,
+    location: users[name],
+  }));
+  console.log(message);
+  io.emit("locations", message);
+}, 10000);
 
 http.listen(port, () => {
   console.log(`Socket.IO server running at http://localhost:${port}/`);
