@@ -3,7 +3,6 @@ import MapView, { Marker } from "react-native-maps";
 import { Location, User, UserInfo, UserMessage } from "./Interfaces";
 import {
   Image,
-  TextInput,
   StyleSheet,
   View,
   Text,
@@ -12,7 +11,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from "react-native";
-import { Chip, Modal, Button, Portal, Provider } from "react-native-paper";
+import { Chip, Modal, Button, Portal, Provider, TextInput } from "react-native-paper";
 import io, { Socket } from "socket.io-client";
 import * as GeoLocation from "expo-location";
 import emojis from "./Emojis";
@@ -43,7 +42,6 @@ export default function App() {
   };
 
   useEffect(() => {
-    setSocket(io("https://teamchatarea.herokuapp.com/"))
     socket.on("locations", (locations: UserInfo[]) => {
       console.log(locations)
       setUsers(locations);
@@ -123,6 +121,7 @@ export default function App() {
     },
     sendButton: {},
   });
+  let nameText;
   if (notSet) {
     return (
       <Provider>
@@ -132,8 +131,16 @@ export default function App() {
             visible={visible}
             onDismiss={startMap}
             contentContainerStyle={containerStyle}
+            style={{height:"100%"}}
           >
-            <TextInput onChangeText={(textName) => setName(textName)} />
+            <Text>
+              ChatArea
+            </Text>
+            <TextInput
+              label="your username"
+              value={nameText}
+              onChangeText={nameText => setName(nameText)}
+            />
             <Button
               mode="contained"
               onPress={() => {
@@ -221,7 +228,7 @@ export default function App() {
               ))}
             </MapView>
             <View>
-              <View style={styles.inputContainer}>
+              {/* <View style={styles.inputContainer}>
                 <TextInput
                   value={text}
                   placeholder="Send a message"
@@ -233,9 +240,9 @@ export default function App() {
                   onPress={handleSendMessage}
                 >
                   Go
-                </Button>
-                <View style={{ width: 10 }}></View>
-              </View>
+                </Button> */}
+                {/* <View style={{ width: 10 }}></View>
+              </View> */}
             </View>
             <View style={{ height: Platform.OS === "ios" ? 10 : 0 }}></View>
           </View>

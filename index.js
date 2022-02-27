@@ -19,9 +19,9 @@ const getDistanceInKmApprox = (lat1, lon1, lat2, lon2) => {
 
 let interval
 io.on("connection", (socket) => {
-  console.log(
-    `${new Date().toLocaleString()}: User with id ${socket.id} connected`
-  );
+  // console.log(
+  //   `${new Date().toLocaleString()}: User with id ${socket.id} connected`
+  // );
   if (interval) {
     clearInterval(interval);
   }
